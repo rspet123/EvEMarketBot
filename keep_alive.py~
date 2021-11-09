@@ -1,5 +1,6 @@
 from flask import Flask
 from threading import Thread
+from replit import db
 app = Flask('')
 @app.route('/')
 def main():
