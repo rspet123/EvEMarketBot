@@ -1,6 +1,7 @@
 import os
 import discord
 import csv
+from replit import db
 import requests
 import random
 import json
@@ -17,7 +18,7 @@ systems["amarr"] = "60008494"
 systems["dodixie"] = "60011866"
 systems["hek"]= "60005686"
 systems["rens"] = "60004588"
-url = "https://EvEmetrics.apps.EvEswarm.org/api/price_data/?station_id=1030049082711&type_id="
+url = "https://goonmetrics.apps.goonswarm.org/api/price_data/?station_id=1030049082711&type_id="
 moonwalk = ["https://www.youtube.com/watch?v=zvJskQuvypw","https://cdn.discordapp.com/attachments/768592802417999874/841529517696352306/The_escape.mp4","https://youtu.be/-UTAEk22w2A"]
 iconurl = "https://images.evetech.net/types/"
 
@@ -52,7 +53,7 @@ print("Starting...")
 
 @client.event
 async def on_ready():
-    print("EvEBot Running as {0.user}".format(client))
+    print("GoonBot Running as {0.user}".format(client))
     g = client.guilds
     print("In servers: ")
     for gld in g:
@@ -63,6 +64,7 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
+    item = {}
     if message.content.startswith('!1dq'):
         try:
             start_time = time.time()
@@ -74,6 +76,11 @@ async def on_message(message):
             move = float((cont.split("<weekly_movement>")
                           )[1].split("</weekly_movement>")[0])
             print(str(message.author) + " wants " + itemname)
+            if str(message.author) in db:
+                db[str(message.author)] = db[str(message.author)] + 1
+                print(str(message.author) + " has pricechecked " + str(db[str(message.author)]) + " times")
+            else:
+                db[str(message.author)] = 1
             if(move ==-1):
               await message.channel.send(itemname + " is not currently on the 1DQ1-A market")
               return
@@ -84,18 +91,21 @@ async def on_message(message):
             embed.add_field(name="Sell", value=sell1 + "ƶ", inline=True)
             embed.add_field(name="Buy", value=buy1 + "ƶ", inline=True)
             embed.add_field(name="Weekly Movement", value=comma_num(move), inline=False)
-            embed.set_footer(text="Spencer Anders' EvEBot\n" + str(round(time.time() - start_time,3) * 1000)+"ms")
+            embed.set_footer(text="Spencer Anders' GoonBot\n" + str(round(time.time() - start_time,3) * 1000)+"ms")
             await message.channel.send(embed=embed)
             
         except Exception:
             await message.channel.send("Try That Again " + message.author.name)
-            print(message.author.name + " messed up")
+            print(message.author.name + " fucked up")
     if message.content.startswith('!moonwalk'):
       randint = random.randrange(0,len(moonwalk))
       print("Moonwalk #" + str(randint) + " playing")
       await message.channel.send(moonwalk[randint])
     if message.content.startswith("!jita"):
       start_time = time.time()
+      if message.author.name == "B" or message.author.name == "A":
+        await message.channel.send("if you have to ask you can't afford it")
+        return
       try:
         itemname = message.content.split('!jita ')[1].lower()
         jitareq = requests.get(fuzzurl1 +systems["jita"] +fuzzurl2+itemdict[itemname])
@@ -103,6 +113,12 @@ async def on_message(message):
         
         buy = iteminf[itemdict[itemname]]["buy"]
         sell = iteminf[itemdict[itemname]]["sell"]
+        #Adds Item to DB
+        if ("Item: "+itemname) not in db:
+          db["Item: "+itemname] = 1
+        else:
+          db["Item: "+itemname] = db["Item: "+itemname] + 1
+          print(db["Item: "+itemname])
         print("Buy")
         print(buy)
         print("Sell")
@@ -113,11 +129,11 @@ async def on_message(message):
         embed.set_thumbnail(url=iconurl + itemdict[itemname] + "/icon")
         embed.add_field(name="Sell", value=sell1, inline=True)
         embed.add_field(name="Buy", value=buy1, inline=True)
-        embed.set_footer(text="Spencer Anders' EvEBot\n" + str(round(time.time() - start_time,3) * 1000)+"ms")
+        embed.set_footer(text="Spencer Anders' GoonBot\n" + str(round(time.time() - start_time,3) * 1000)+"ms")
         await message.channel.send(embed=embed)
       except Exception:
         await message.channel.send("Try That Again " + message.author.name)
-        print(message.author.name + " messed up")
+        print(message.author.name + " fucked up")
     if message.content.startswith("!amarr"):
       try:
         start_time = time.time()
@@ -133,11 +149,11 @@ async def on_message(message):
         embed.set_thumbnail(url=iconurl + itemdict[itemname] + "/icon")
         embed.add_field(name="Sell", value=sell1, inline=True)
         embed.add_field(name="Buy", value=buy1, inline=True)
-        embed.set_footer(text="Spencer Anders' EvEBot\n" + str(round(time.time() - start_time,3) * 1000)+"ms")
+        embed.set_footer(text="Spencer Anders' GoonBot\n" + str(round(time.time() - start_time,3) * 1000)+"ms")
         await message.channel.send(embed=embed)
       except Exception:
         await message.channel.send("Try That Again " + message.author.name)
-        print(message.author.name + " messed up")
+        print(message.author.name + " fucked up")
     if message.content.startswith("!margin"):
       try:
         start_time = time.time()
@@ -169,11 +185,17 @@ async def on_message(message):
         embed.add_field(name="1DQ1-A", value=delve, inline=True)
         embed.add_field(name="Jita", value=jita1, inline=True)
         embed.add_field(name="Sell - Sell Margin", value=margins, inline=False)
-        embed.set_footer(text="Spencer Anders' EvEBot\n" + str(round(time.time() - start_time,3) * 1000)+"ms")
+        embed.set_footer(text="Spencer Anders' GoonBot\n" + str(round(time.time() - start_time,3) * 1000)+"ms")
         await message.channel.send(embed=embed)
       except Exception:
         await message.channel.send("Try That Again " + message.author.name)
-        print(message.author.name + " messed up")
+        print(message.author.name + " fucked up")
+    if message.content.startswith('!kennyg'):
+      print('KENNYG')
+      await message.channel.send("https://youtu.be/cSg4QeoXS2A")
+    if message.content.startswith('!goatse'):
+      print('GOATSE')
+      await message.channel.send("-ϵ⭕϶-")
     if message.content.startswith('!commands'):
       await message.channel.send("!jita <item>\n!perimeter <item>\n!amarr <item>\n!hek <item>\n!rens <item>\n!dodixie <item>\n!1dq <item>\n!margin <item>\n!compare <buy location> <sell location> <item>")
       await message.channel.send("for example, if i wanted a price check on Caldari Navy Mjolnir Light Missile in Jita, I would say\n!jita Caldari Navy Mjolnir Light Missile")
@@ -181,7 +203,10 @@ async def on_message(message):
       print(message.author.name + "wants help lol")
       await message.channel.send("No, lol")
       await message.channel.send("figure it out")
-      await message.channel.send("try !commands")
+    if message.content.startswith('!porn'):
+      print('THETA')
+      await message.channel.send("https://goonfleet.com/index.php/topic/140326-squad-theta-squad-no-longer-run-by-angus/")
+      await message.channel.send(":skink:")
     if message.content.startswith("!perimeter"):
       try:
         start_time = time.time()
@@ -197,11 +222,11 @@ async def on_message(message):
         embed.set_thumbnail(url=iconurl + itemdict[itemname] + "/icon")
         embed.add_field(name="Sell", value=sell1, inline=True)
         embed.add_field(name="Buy", value=buy1, inline=True)
-        embed.set_footer(text="Spencer Anders' EvEBot\n" + str(round(time.time() - start_time,3) * 1000)+"ms")
+        embed.set_footer(text="Spencer Anders' GoonBot\n" + str(round(time.time() - start_time,3) * 1000)+"ms")
         await message.channel.send(embed=embed)
       except Exception:
         await message.channel.send("Try That Again " + message.author.name)
-        print(message.author.name + " messed up")
+        print(message.author.name + " fucked up")
     if message.content.startswith("!compare "):
       try:
         start_time = time.time()
@@ -243,11 +268,11 @@ async def on_message(message):
         embed.add_field(name=loc1.capitalize(), value=stats1, inline=True)
         embed.add_field(name=loc2.capitalize(), value=stats2, inline=True)
         embed.add_field(name="Sell - Sell Margin", value=margins, inline=False)
-        embed.set_footer(text="Spencer Anders' EvEBot\n" + str(round(time.time() - start_time,3) * 1000)+"ms")
+        embed.set_footer(text="Spencer Anders' GoonBot\n" + str(round(time.time() - start_time,3) * 1000)+"ms")
         await message.channel.send(embed=embed)
       except Exception:
         await message.channel.send("Try That Again " + message.author.name)
-        print(message.author.name + " messed up")
+        print(message.author.name + " fucked up")
 keep_alive.keep_alive()
 client.run(tk1)
 
