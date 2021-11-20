@@ -273,6 +273,7 @@ async def on_message(message):
       except Exception:
         await message.channel.send("Try That Again " + message.author.name)
         print(message.author.name + " fucked up")
-keep_alive.keep_alive()
-client.run(tk1)
 
+if __name__ == "__main__":
+  keep_alive.keep_alive()
+  client.run(tk1)
