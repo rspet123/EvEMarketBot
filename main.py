@@ -7,7 +7,7 @@ import random
 import json
 import keep_alive
 import time
-tk1 = os.environ['TOKEN']
+tk1 = os.environ['DISC_TOKEN']
 itemdict = {}
 fuzzurl1 = "https://market.fuzzwork.co.uk/aggregates/?region="
 fuzzurl2 = "&types="
