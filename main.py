@@ -10,10 +10,13 @@ import time
 import datetime
 import math
 import traceback
-import difflib
+#import difflib Will implement Levenshtein min distance search at some point
 tk1 = os.environ['TOKEN']
 itemdict = {}
+itemdict_backwards = {}
 packaged_dict = {}
+blueprints = {}
+products = {}
 voldict = {}
 fuzzurl1 = "https://market.fuzzwork.co.uk/aggregates/?region="
 fuzzurl2 = "&types="
@@ -28,7 +31,7 @@ jokes = ["Time to get a watch","Login and look, idiot","Time to get dunked on","
 url = "https://goonmetrics.apps.goonswarm.org/api/price_data/?station_id=1030049082711&type_id="
 moonwalk = ["https://www.youtube.com/watch?v=zvJskQuvypw","https://cdn.discordapp.com/attachments/768592802417999874/841529517696352306/The_escape.mp4","https://youtu.be/-UTAEk22w2A"]
 iconurl = "https://images.evetech.net/types/"
-
+#[Daniel]
 def string_search(item_search, candidate_list = itemdict.keys()):
   possible_matches = []
   for key in candidate_list:
@@ -74,12 +77,25 @@ def check(message):
   #Replace this later lol
     return True
 def comma_num(number):
-    number = round(number,2)
+    number = round(number,4)
     if number > 1000:
       number = int(number)
     out = "{:,}".format(number)
     return out
-  #Getting Packaged Volumes
+
+#Getting blueprint info
+with open('IndustryStuff/industryActivityMaterials.csv', newline='') as bps:
+  reader = csv.reader(bps)
+  for bp in reader:
+    if bp[0] not in blueprints:
+      blueprints[bp[0]] = []
+    else:
+      blueprints[bp[0]].append((bp[2],bp[3]))
+with open('IndustryStuff/industryActivityProducts.csv', newline='') as prods:
+  reader = csv.reader(prods)
+  for prod in reader:
+      products[prod[2]] = prod[0]
+#Getting Packaged Volumes
 with open('invVolumes.csv', newline='') as volumes:
   reader = csv.reader(volumes)
   for vol in reader:
@@ -88,6 +104,7 @@ with open('invVolumes.csv', newline='') as volumes:
 with open('invTypes.csv', newline='') as file1:
     reader = csv.reader(file1)
     for item in reader:
+        itemdict_backwards[item[0]] = item[2]
         itemdict[item[2].lower()] = item[0]
         if item[0] in packaged_dict:
           try:
@@ -180,6 +197,9 @@ async def on_message(message):
       randint = random.randrange(0,len(moonwalk))
       print("Moonwalk #" + str(randint) + " playing")
       await message.channel.send(moonwalk[randint])
+
+
+      
       #JITA
     if message.content.startswith("!jita"):
       start_time = time.time()
@@ -222,9 +242,9 @@ async def on_message(message):
         print(buy)
         print("Sell")
         print(sell)
-        sell1 = "Minimum: " + comma_num(float(sell["min"]))+ "ƶ\nMedian: " + comma_num(float(sell["median"]))+ "ƶ\nVolume: "+ comma_num(float(sell["volume"])) + "\nOrders: " + comma_num(float(sell["orderCount"]))
-        buy1 = "Maximum: " + comma_num(float(buy["max"]))+ "ƶ\nMedian: " + comma_num(float(buy["median"]))+ "ƶ\nVolume: "+ comma_num(float(buy["volume"])) + "\nOrders: " + comma_num(float(buy["orderCount"])) 
-        embed=discord.Embed(title=itemname, description="Jita", color=0x00fe15)
+        sell1 = "Minimum: " + comma_num(float(sell["min"]))+ "ƶ\nMedian: " + comma_num(float(sell["median"]))+ "ƶ\nVolume: "+ comma_num(int(sell["volume"])) + "\nOrders: " + comma_num(int(sell["orderCount"]))
+        buy1 = "Maximum: " + comma_num(float(buy["max"]))+ "ƶ\nMedian: " + comma_num(float(buy["median"]))+ "ƶ\nVolume: "+ comma_num(int(buy["volume"])) + "\nOrders: " + comma_num(int(buy["orderCount"])) 
+        embed=discord.Embed(title=itemname.title(), description="Jita", color=0x00fe15)
         embed.set_thumbnail(url=iconurl + itemdict[itemname] + "/icon")
         embed.add_field(name="Sell", value=sell1, inline=True)
         embed.add_field(name="Buy", value=buy1, inline=True)
@@ -396,6 +416,13 @@ async def on_message(message):
       await message.channel.send(jokes[randint])
       await message.channel.send(e)
 
+
+      
+      #BUILDCOST CALCULATOR
+    if message.content.startswith("!build "):
+      await message.channel.send("Hmmm... no")
+        
+        
 if __name__ == "__main__":
   keep_alive.keep_alive()
   client.run(tk1)
