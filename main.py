@@ -422,6 +422,10 @@ async def on_message(message):
       
       #BUILDCOST CALCULATOR
     if message.content.startswith("!build "):
+      await message.channel.send("WORKING ON IT")
+
+    #FIT PRICE CALCULATOR
+    if message.content.startswith("!fit"):
       await message.channel.send("Placeholder")
 
     #Patchnotes
