@@ -39,6 +39,10 @@ def string_search(item_search, candidate_list = itemdict.keys()):
       possible_matches.append(key)
   return possible_matches
 
+def percent_format(num):
+  out = round((num *100),2)
+  return str(out) + "%"
+
 async def item_searching(item_searched,message):
   candidates = string_search(item_searched)
   search_text = ""
@@ -249,8 +253,9 @@ async def on_message(message):
         embed.add_field(name="Sell", value=sell1, inline=True)
         embed.add_field(name="Buy", value=buy1, inline=True)
         spread = (float(sell["min"]) - float(buy["max"]))/float(sell["min"])
-        embed.add_field(name="Bid-Ask Spread Percentage", value=str(round(spread,3)*100) + "%", inline=False)
+        embed.add_field(name="Bid-Ask Spread Percentage", value=percent_format(spread), inline=False)
         embed.set_footer(text="Spencer Anders' GoonBot\n" + str(round(time.time() - start_time,3) * 1000)+"ms")
+        print(spread)
         await message.channel.send(embed=embed)
       except Exception:
         await message.channel.send("Try That Again " + message.author.name)
@@ -309,12 +314,12 @@ async def on_message(message):
         else:
           print(nums1)
           color1 = 0x00fe15
-        margins = str(math.ceil(((minsell- float(sell["min"]))/ float(sell["min"]))*10000)/100)+"%"
+        margins = ((minsell- float(sell["min"]))/ float(sell["min"]))
         embed=discord.Embed(title=itemname.title(), description="Jita -> 1DQ1-A", color=color1)
         embed.set_thumbnail(url=iconurl + itemdict[itemname] + "/icon")
         embed.add_field(name="1DQ1-A", value=delve, inline=True)
         embed.add_field(name="Jita", value=jita1, inline=True)
-        embed.add_field(name="Sell - Sell Margin", value=margins, inline=False)
+        embed.add_field(name="Sell - Sell Margin", value=percent_format(margins), inline=False)
         embed.add_field(name="Item Volume", value=(str(voldict[itemname]) + " m³"), inline=False)
         embed.set_footer(text="Spencer Anders' GoonBot\n" + str(round(time.time() - start_time,3) * 1000)+"ms")
         await message.channel.send(embed=embed)
@@ -430,7 +435,7 @@ async def on_message(message):
 
     #Patchnotes
     if message.content.startswith("!patchnotes"):
-      await message.channel.send("- 1/9/2022 \n- Fixed Bug with !jita command \n- Added simple string search \n- Set !perimeter to the correct system (was jita lol) \n- Set !jita command to Jita 4-4 CNAP, not the whole system \n- Added (buggy) multiline pricechecking with !pricecheck")
+      await message.channel.send("- 1/9/2022 \n- Fixed Bug with !jita command \n- Added simple string search \n- Set !perimeter to the correct system (was jita lol) \n- Set !jita command to Jita 4-4 CNAP, not the whole system \n- Added (buggy) multiline pricechecking with !pricecheck \n- Fixed(?) the ugly number formatting bug (.999999999...) ")
 
     if message.content.startswith("!pricecheck"):
       #itemname = message.content.split('!pricecheck ')[1].lower()
