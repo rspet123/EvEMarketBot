@@ -459,14 +459,17 @@ async def on_message(message):
     if message.content.startswith("!pricecheck"):
       #itemname = message.content.split('!pricecheck ')[1].lower()
       total_price = 0
-      msg = await client.wait_for('message', check=check, timeout=30)
       items_to_check = message.content.split('!pricecheck ')[1].lower()
       items = (items_to_check).splitlines()
       item_quantities = []
       item_ids = []
       quant_ids = {}
       for item in items:
-        item_quantities.append((item.rsplit(' ', 1)[0].strip(),int(item.rsplit(' ', 1)[1])))
+        try:
+          item_quantities.append((item.rsplit(' ', 1)[0].strip(),int(item.rsplit(' ', 1)[1])))
+        except Exception:
+          print(item)
+          item_quantities.append((item,int(1)))
       #print(item_quantities)
       query_string = ""
       for item in item_quantities:
