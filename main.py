@@ -422,35 +422,7 @@ async def on_message(message):
       
       #BUILDCOST CALCULATOR
     if message.content.startswith("!build "):
-      await message.channel.send("WORKING ON IT")
-
-    #FIT PRICE CALCULATOR
-    if message.content.startswith("!fit"):
-      await message.channel.send("Paste Items Now")
-      #Wait for msg back
-      msg = await client.wait_for('message', check=check, timeout=30)
-      items = (msg.content).splitlines()
-      cleaned_items = []
-      fit = {}
-      items[0] = items[0].replace("[","").replace("]","")
-      for item in items[2:]:
-        cleaned_items.extend(item.split(', '))
-        if item not in itemdict.keys():
-          try:
-            curr_item = item.rsplit(' ', 1)[0]
-            quantity = int(item.rsplit(' ', 1)[1].replace("x",""))
-            print(curr_item +" x"+str(quantity))
-          except Exception:
-            continue
-      #print(cleaned_items)
-      print(cleaned_items[0])
-      print(cleaned_items[1])
-      for item in cleaned_items[2:]:
-        if item not in fit.keys():
-          fit[item] = 1
-        else:
-          fit[item] += 1
-      print(fit)
+      await message.channel.send("Placeholder")
 
     #Patchnotes
     if message.content.startswith("!patchnotes"):
