@@ -2,6 +2,7 @@ import pandas as pd
 from replit import db
 from plotly.offline import plot
 from plotly.graph_objs import Scatter
+import spitfire
 import plotly.express as px
 
 def console_stat_updater():

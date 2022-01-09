@@ -21,8 +21,8 @@ voldict = {}
 fuzzurl1 = "https://market.fuzzwork.co.uk/aggregates/?region="
 fuzzurl2 = "&types="
 systems = {}
-systems["jita"] = "30000142"
-systems["perimeter"] = "30000142"
+systems["jita"] = "60003760"
+systems["perimeter"] = "30000144"
 systems["amarr"] = "60008494"
 systems["dodixie"] = "60011866"
 systems["hek"]= "60005686"
@@ -242,8 +242,8 @@ async def on_message(message):
         print(buy)
         print("Sell")
         print(sell)
-        sell1 = "Minimum: " + comma_num(float(sell["min"]))+ "ƶ\nMedian: " + comma_num(float(sell["median"]))+ "ƶ\nVolume: "+ comma_num(int(sell["volume"])) + "\nOrders: " + comma_num(int(sell["orderCount"]))
-        buy1 = "Maximum: " + comma_num(float(buy["max"]))+ "ƶ\nMedian: " + comma_num(float(buy["median"]))+ "ƶ\nVolume: "+ comma_num(int(buy["volume"])) + "\nOrders: " + comma_num(int(buy["orderCount"])) 
+        sell1 = "Minimum: " + comma_num(float(sell["min"]))+ "ƶ\nMedian: " + comma_num(float(sell["median"]))+ "ƶ\nVolume: "+ comma_num(float(sell["volume"])) + "\nOrders: " + comma_num(float(sell["orderCount"]))
+        buy1 = "Maximum: " + comma_num(float(buy["max"]))+ "ƶ\nMedian: " + comma_num(float(buy["median"]))+ "ƶ\nVolume: "+ comma_num(float(buy["volume"])) + "\nOrders: " + comma_num(float(buy["orderCount"])) 
         embed=discord.Embed(title=itemname.title(), description="Jita", color=0x00fe15)
         embed.set_thumbnail(url=iconurl + itemdict[itemname] + "/icon")
         embed.add_field(name="Sell", value=sell1, inline=True)
@@ -255,6 +255,8 @@ async def on_message(message):
       except Exception:
         await message.channel.send("Try That Again " + message.author.name)
         print(message.author.name + " fucked up")
+        traceback.print_exc()
+
 
         
         #AMARR
@@ -420,8 +422,68 @@ async def on_message(message):
       
       #BUILDCOST CALCULATOR
     if message.content.startswith("!build "):
-      await message.channel.send("Hmmm... no")
-        
+      await message.channel.send("WORKING ON IT")
+
+    #FIT PRICE CALCULATOR
+    if message.content.startswith("!fit"):
+      await message.channel.send("Paste Items Now")
+      #Wait for msg back
+      msg = await client.wait_for('message', check=check, timeout=30)
+      items = (msg.content).splitlines()
+      cleaned_items = []
+      fit = {}
+      items[0] = items[0].replace("[","").replace("]","")
+      for item in items[2:]:
+        cleaned_items.extend(item.split(', '))
+        if item not in itemdict.keys():
+          try:
+            curr_item = item.rsplit(' ', 1)[0]
+            quantity = int(item.rsplit(' ', 1)[1].replace("x",""))
+            print(curr_item +" x"+str(quantity))
+          except Exception:
+            continue
+      #print(cleaned_items)
+      print(cleaned_items[0])
+      print(cleaned_items[1])
+      for item in cleaned_items[2:]:
+        if item not in fit.keys():
+          fit[item] = 1
+        else:
+          fit[item] += 1
+      print(fit)
+
+    #Patchnotes
+    if message.content.startswith("!patchnotes"):
+      await message.channel.send("- 1/9/2022 \n- Fixed Bug with !jita command \n- Added simple string search \n- Set !perimeter to the correct system (was jita lol) \n- Set !jita command to Jita 4-4 CNAP, not the whole system \n- Added (buggy) multiline pricechecking with !pricecheck")
+
+    if message.content.startswith("!pricecheck"):
+      #itemname = message.content.split('!pricecheck ')[1].lower()
+      total_price = 0
+      msg = await client.wait_for('message', check=check, timeout=30)
+      items_to_check = message.content.split('!pricecheck ')[1].lower()
+      items = (items_to_check).splitlines()
+      item_quantities = []
+      item_ids = []
+      quant_ids = {}
+      for item in items:
+        item_quantities.append((item.rsplit(' ', 1)[0].strip(),int(item.rsplit(' ', 1)[1])))
+      #print(item_quantities)
+      query_string = ""
+      for item in item_quantities:
+        query_string+=(itemdict[item[0].lower()] + ",")
+        item_ids.append(itemdict[item[0].lower()])
+        quant_ids[itemdict[item[0].lower()]] = int(item[1])
+      print("Sending Query for")
+      print(query_string)
+      
+      jitareq = requests.get(fuzzurl1 +systems["jita"] +fuzzurl2+query_string)
+      iteminf = json.loads(jitareq.text)
+      for id in item_ids:
+        #print(itemdict_backwards[id] + " x" + str(quant_ids[id]))
+        item_price = float(iteminf[id]["sell"]["min"]) * quant_ids[id]
+        #print(item_price)
+        total_price += item_price
+      await message.channel.send(comma_num(total_price) + " ISK - Jita")
         
 if __name__ == "__main__":
   keep_alive.keep_alive()
