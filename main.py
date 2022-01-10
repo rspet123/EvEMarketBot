@@ -82,7 +82,7 @@ def check(message):
     return True
 def comma_num(number):
     number = round(number,4)
-    if number > 1000:
+    if abs(number) > 1000:
       number = int(number)
     out = "{:,}".format(number)
     return out
@@ -295,6 +295,26 @@ async def on_message(message):
         #0x00fe15 Green
         #0xFF0000 Red
         itemname = message.content.split('!margin ')[1].lower()
+        if not itemname in itemdict:
+          candidates = string_search(itemname)
+          search_text = ""
+          for i,candidate in enumerate(candidates):
+            search_text += str(i) + " - " + candidate.title() + "\n"
+          embed=discord.Embed(title=("Searching for "+itemname.title()), description="Jita", color=0x00fe15)
+          embed.add_field(name="Results", value=search_text, inline=True)
+          try:
+            await message.channel.send(embed=embed)
+          except discord.errors.HTTPException:
+            await message.channel.send("Too many items to display, Narrow your search please")
+            return
+          msg = await client.wait_for('message', check=check, timeout=30)
+          try:
+            index = int(msg.content)
+            itemname = candidates[index]
+          except Exception:
+            await message.channel.send("That's not right...")
+            return
+        
         amarrreq = requests.get(fuzzurl1 +systems["jita"] +fuzzurl2+itemdict[itemname])
         iteminf = json.loads(amarrreq.text)
         response = requests.get(url + itemdict[itemname])
@@ -314,18 +334,25 @@ async def on_message(message):
         else:
           print(nums1)
           color1 = 0x00fe15
+        profit_per_item = (float(minsell)- float(sell["min"]))
+        profit_per_m3 = (profit_per_item * (1/(float(voldict[itemname]))))
         margins = ((minsell- float(sell["min"]))/ float(sell["min"]))
-        embed=discord.Embed(title=itemname.title(), description="Jita -> 1DQ1-A", color=color1)
+        embed=discord.Embed(title=itemname.title(), description="Jita → 1DQ1-A", color=color1)
         embed.set_thumbnail(url=iconurl + itemdict[itemname] + "/icon")
         embed.add_field(name="1DQ1-A", value=delve, inline=True)
         embed.add_field(name="Jita", value=jita1, inline=True)
+        embed.add_field(name="Est. Profit per m³", value=(comma_num(profit_per_m3) + "ƶ"), inline=True)
         embed.add_field(name="Sell - Sell Margin", value=percent_format(margins), inline=False)
         embed.add_field(name="Item Volume", value=(str(voldict[itemname]) + " m³"), inline=False)
         embed.set_footer(text="Spencer Anders' GoonBot\n" + str(round(time.time() - start_time,3) * 1000)+"ms")
         await message.channel.send(embed=embed)
+        print(comma_num(profit_per_m3))
       except Exception:
         await message.channel.send("Try That Again " + message.author.name)
         print(message.author.name + " fucked up")
+        traceback.print_exc()
+
+  
     if message.content.startswith('!kennyg'):
       print('KENNYG')
       await message.channel.send("https://youtu.be/cSg4QeoXS2A")
@@ -435,7 +462,7 @@ async def on_message(message):
 
     #Patchnotes
     if message.content.startswith("!patchnotes"):
-      await message.channel.send("- 1/9/2022 \n- Fixed Bug with !jita command \n- Added simple string search \n- Set !perimeter to the correct system (was jita lol) \n- Set !jita command to Jita 4-4 CNAP, not the whole system \n- Added (buggy) multiline pricechecking with !pricecheck \n- Fixed(?) the ugly number formatting bug (.999999999...) ")
+      await message.channel.send("- 1/9/2022 \n- Fixed Bug with !jita command \n- Added simple string search \n- Set !perimeter to the correct system (was jita lol) \n- Set !jita command to Jita 4-4 CNAP, not the whole system \n- Added (buggy) multiline pricechecking with !pricecheck \n- Fixed(?) the ugly number formatting bug (.999999999...) \n- Added estimated isk/m3 for !margin command \n- String search now works for !margin command")
 
     if message.content.startswith("!pricecheck"):
       #itemname = message.content.split('!pricecheck ')[1].lower()
